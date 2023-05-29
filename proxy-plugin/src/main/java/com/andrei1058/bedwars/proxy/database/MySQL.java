@@ -38,7 +38,7 @@ public class MySQL implements Database{
      */
     public boolean connect() {
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true" + "&useSSL=" + ssl + "&useUnicode=true&characterEncoding=UTF-8", user, pass);
+            this.connection = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?autoReconnect=true" + "&useSSL=" + this.ssl + "&useUnicode=true&characterEncoding=UTF-8", this.user, this.pass);
             return true;
         } catch (SQLException e) {
             e.printStackTrace();

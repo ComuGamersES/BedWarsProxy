@@ -8,9 +8,8 @@ import com.andrei1058.bedwars.proxy.configuration.SoundsConfig;
 import com.andrei1058.bedwars.proxy.language.Language;
 import com.andrei1058.bedwars.proxy.api.Messages;
 import com.andrei1058.bedwars.proxy.language.LanguageManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import dev.triumphteam.gui.builder.item.ItemBuilder;
+import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -18,6 +17,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
@@ -64,29 +64,38 @@ public class ArenaGUI {
 
             CachedArena ca = arenas.get(arenaKey);
 
+            Color color;
             String status;
             switch (ca.getStatus()) {
-                case WAITING:
+                case WAITING: {
                     status = "waiting";
+                    color = Color.LIME;
                     break;
-                case PLAYING:
+                }
+                case PLAYING: {
                     status = "playing";
+                    color = Color.RED;
                     break;
-                case STARTING:
+                }
+                case STARTING: {
                     status = "starting";
+                    color = Color.YELLOW;
                     break;
-                default:
+                }
+                default: {
                     continue;
+                }
             }
 
-            i = BedWarsProxy.getItemAdapter().createItem(yml.getString(ConfigPath.GENERAL_CONFIGURATION_ARENA_SELECTOR_STATUS_MATERIAL.replace("%path%", status)),
-                    1, (byte) yml.getInt(ConfigPath.GENERAL_CONFIGURATION_ARENA_SELECTOR_STATUS_DATA.replace("%path%", status)));
-            if (i == null) i = new ItemStack(Material.BEDROCK);
+            i = ItemBuilder.from(Material.FIREWORK_CHARGE)
+                    .color(color)
+                    .flags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_POTION_EFFECTS)
+                    .amount(ca.getCurrentPlayers())
+                    .build();
 
             if (yml.getBoolean(ConfigPath.GENERAL_CONFIGURATION_ARENA_SELECTOR_STATUS_ENCHANTED.replace("%path%", status))) {
                 if (i.getItemMeta() != null){
                     ItemMeta im = i.getItemMeta();
-                    im.addEnchant(Enchantment.LURE, 1, true);
                     im.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                     i.setItemMeta(im);
                 }
@@ -95,7 +104,7 @@ public class ArenaGUI {
 
             ItemMeta im = i.getItemMeta();
             com.andrei1058.bedwars.proxy.api.Language lang = LanguageManager.get().getPlayerLanguage(p);
-            if (im != null){
+            if (im != null) {
                 im.setDisplayName(Language.getMsg(p, Messages.ARENA_GUI_ARENA_CONTENT_NAME).replace("{name}", ca.getDisplayName(lang)));
                 List<String> lore = new ArrayList<>();
                 for (String s : LanguageManager.get().getList(p, Messages.ARENA_GUI_ARENA_CONTENT_LORE)) {
@@ -105,7 +114,19 @@ public class ArenaGUI {
                                 .replace("{group}", ca.getDisplayGroup(lang)));
                     }
                 }
+
                 im.setLore(lore);
+
+                if (im instanceof FireworkEffectMeta) {
+                    FireworkEffectMeta fireworkEffectMeta = (FireworkEffectMeta) im;
+                    FireworkEffect effect = FireworkEffect.builder()
+                            .withColor(color)
+                            .build();
+
+                    fireworkEffectMeta.setEffect(effect);
+                    i.setItemMeta(fireworkEffectMeta);
+                }
+
                 i.setItemMeta(im);
             }
             i = BedWarsProxy.getItemAdapter().addTag(i, "server", ca.getServer());
@@ -123,26 +144,9 @@ public class ArenaGUI {
         if (size > 54) size = 54;
         Inventory inv = Bukkit.createInventory(new SelectorHolder(), size, Language.getMsg(p, Messages.ARENA_GUI_INV_NAME));
 
-        ItemStack i = BedWarsProxy.getItemAdapter().createItem(yml.getString(ConfigPath.GENERAL_CONFIGURATION_ARENA_SELECTOR_STATUS_MATERIAL.replace("%path%", "skipped-slot")),
-                1, (byte) yml.getInt(ConfigPath.GENERAL_CONFIGURATION_ARENA_SELECTOR_STATUS_DATA.replace("%path%", "skipped-slot")));
-        if (i == null) i = new ItemStack(Material.BEDROCK);
-        i = BedWarsProxy.getItemAdapter().addTag(i, "cancelClick", "true");
-
-        if (i.getItemMeta() != null){
-            ItemMeta im = i.getItemMeta();
-            im.setDisplayName(ChatColor.translateAlternateColorCodes('&', BedWarsProxy.config.getString(ConfigPath.GENERAL_CONFIG_PLACEHOLDERS_REPLACEMENTS_SERVER_IP)));
-            im.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            i.setItemMeta(im);
-        }
-
-        for (int x = 0; x < inv.getSize(); x++) {
-            inv.setItem(x, i);
-        }
-
         p.openInventory(inv);
         refresh.put(p, new Object[]{inv, group});
         refreshInv(p, new Object[]{inv, group});
-        //p.updateInventory();
         SoundsConfig.playSound("arena-selector-open", p);
     }
 

@@ -83,6 +83,12 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>dev.triumphteam</groupId>
+            <artifactId>triumph-gui</artifactId>
+            <version>3.1.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.andrei1058.spigot.versionsupport</groupId>
             <artifactId>sounds-version</artifactId>
             <version>1.6.3</version>
@@ -213,6 +219,10 @@
                         <relocation>
                             <pattern>com.andrei1058.spigot.versionsupport</pattern>
                             <shadedPattern>com.andrei1058.bedwars.proxy.libs</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>dev.triumphteam</pattern>
+                            <shadedPattern>com.andrei1058.bedwars.proxy.libs</shadedPattern> <!-- Replace package here here -->
                         </relocation>
                     </relocations>
                 </configuration>
