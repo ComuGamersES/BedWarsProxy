@@ -35,7 +35,6 @@ public class ArenaSocketTask implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(socket.toString());
     }
 
     @Override
